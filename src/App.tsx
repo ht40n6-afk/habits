@@ -247,6 +247,91 @@ const Toast = ({ message }: { message: string }) => (
   </div>
 );
 
+const RewardList = ({
+  title,
+  items,
+  onAdd,
+  onRemove,
+  onClaim,
+  canClaim,
+}: {
+  title: string;
+  items: string[];
+  onAdd: (value: string) => void;
+  onRemove: (index: number) => void;
+  onClaim?: (item: string) => void;
+  canClaim?: boolean;
+}) => {
+  const [value, setValue] = useState("");
+
+  return (
+    <div className="rounded-2xl border border-ink-100 bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-semibold text-ink-900">{title}</h3>
+      </div>
+      <ul className="mt-3 space-y-2">
+        {items.length === 0 && (
+          <li className="text-sm text-ink-500">No rewards yet.</li>
+        )}
+        {items.map((item, index) => (
+          <li
+            key={`${item}-${index}`}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-100 px-3 py-2 text-sm"
+          >
+            <span className="text-ink-800">{item}</span>
+            <div className="flex items-center gap-2">
+              {onClaim && (
+                <button
+                  type="button"
+                  disabled={!canClaim}
+                  onClick={() => onClaim(item)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    canClaim
+                      ? "bg-ink-900 text-white hover:bg-ink-700"
+                      : "cursor-not-allowed bg-ink-100 text-ink-400"
+                  }`}
+                >
+                  Claim
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                className="rounded-full border border-ink-200 px-3 py-1 text-xs text-ink-600 hover:border-ink-400"
+              >
+                Remove
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <input
+          type="text"
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          placeholder="Add a reward"
+          className="w-full rounded-xl border border-ink-100 px-3 py-2 text-sm focus:border-ink-300 focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            const trimmed = value.trim();
+            if (!trimmed) {
+              return;
+            }
+            onAdd(trimmed);
+            setValue("");
+          }}
+          className="rounded-xl bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-700"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [data, setData] = usePersistentData();
   const [activeTab, setActiveTab] = useState<TabKey>("timer");
@@ -605,91 +690,6 @@ const App = () => {
     }
     return streak;
   }, [monthBlocks, now, timeZone, todayKey]);
-
-  const RewardList = ({
-    title,
-    items,
-    onAdd,
-    onRemove,
-    onClaim,
-    canClaim,
-  }: {
-    title: string;
-    items: string[];
-    onAdd: (value: string) => void;
-    onRemove: (index: number) => void;
-    onClaim?: (item: string) => void;
-    canClaim?: boolean;
-  }) => {
-    const [value, setValue] = useState("");
-
-    return (
-      <div className="rounded-2xl border border-ink-100 bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-ink-900">{title}</h3>
-        </div>
-        <ul className="mt-3 space-y-2">
-          {items.length === 0 && (
-            <li className="text-sm text-ink-500">No rewards yet.</li>
-          )}
-          {items.map((item, index) => (
-            <li
-              key={`${item}-${index}`}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-100 px-3 py-2 text-sm"
-            >
-              <span className="text-ink-800">{item}</span>
-              <div className="flex items-center gap-2">
-                {onClaim && (
-                  <button
-                    type="button"
-                    disabled={!canClaim}
-                    onClick={() => onClaim(item)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                      canClaim
-                        ? "bg-ink-900 text-white hover:bg-ink-700"
-                        : "cursor-not-allowed bg-ink-100 text-ink-400"
-                    }`}
-                  >
-                    Claim
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => onRemove(index)}
-                  className="rounded-full border border-ink-200 px-3 py-1 text-xs text-ink-600 hover:border-ink-400"
-                >
-                  Remove
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <input
-            type="text"
-            value={value}
-            onChange={(event) => setValue(event.target.value)}
-            placeholder="Add a reward"
-            className="w-full rounded-xl border border-ink-100 px-3 py-2 text-sm focus:border-ink-300 focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              const trimmed = value.trim();
-              if (!trimmed) {
-                return;
-              }
-              onAdd(trimmed);
-              setValue("");
-            }}
-            className="rounded-xl bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-700"
-          >
-            Add
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-ink-50">
