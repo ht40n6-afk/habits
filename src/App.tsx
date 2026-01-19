@@ -250,6 +250,8 @@ const Toast = ({ message }: { message: string }) => (
 const RewardList = ({
   title,
   items,
+  value,
+  onValueChange,
   onAdd,
   onRemove,
   onClaim,
@@ -257,13 +259,13 @@ const RewardList = ({
 }: {
   title: string;
   items: string[];
+  value: string;
+  onValueChange: (nextValue: string) => void;
   onAdd: (value: string) => void;
   onRemove: (index: number) => void;
   onClaim?: (item: string) => void;
   canClaim?: boolean;
 }) => {
-  const [value, setValue] = useState("");
-
   return (
     <div className="rounded-2xl border border-ink-100 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
@@ -309,7 +311,7 @@ const RewardList = ({
         <input
           type="text"
           value={value}
-          onChange={(event) => setValue(event.target.value)}
+          onChange={(event) => onValueChange(event.target.value)}
           placeholder="Add a reward"
           className="w-full rounded-xl border border-ink-100 px-3 py-2 text-sm focus:border-ink-300 focus:outline-none"
         />
@@ -321,7 +323,7 @@ const RewardList = ({
               return;
             }
             onAdd(trimmed);
-            setValue("");
+            onValueChange("");
           }}
           className="rounded-xl bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-700"
         >
@@ -346,6 +348,11 @@ const App = () => {
   const [pendingNote, setPendingNote] = useState("");
   const [isLogging, setIsLogging] = useState(false);
   const [now, setNow] = useState(() => new Date());
+  const [rewardDrafts, setRewardDrafts] = useState({
+    tier1: "",
+    tier2: "",
+    tier3: "",
+  });
   const completionLock = useRef(false);
 
   const timeZone = data.settings.timeZone;
@@ -587,6 +594,16 @@ const App = () => {
         ...prev.rewards,
         [tier]: value,
       },
+    }));
+  };
+
+  const updateRewardDraft = (
+    tier: "tier1" | "tier2" | "tier3",
+    value: string
+  ) => {
+    setRewardDrafts((prev) => ({
+      ...prev,
+      [tier]: value,
     }));
   };
 
@@ -1021,6 +1038,8 @@ const App = () => {
               <RewardList
                 title={`Tier 1 rewards (tokens available: ${tier1Tokens})`}
                 items={data.rewards.tier1}
+                value={rewardDrafts.tier1}
+                onValueChange={(value) => updateRewardDraft("tier1", value)}
                 onAdd={(value) => updateRewards("tier1", [...data.rewards.tier1, value])}
                 onRemove={(index) =>
                   updateRewards(
@@ -1038,6 +1057,8 @@ const App = () => {
                     : "Tier 2 rewards (locked)"
                 }
                 items={data.rewards.tier2}
+                value={rewardDrafts.tier2}
+                onValueChange={(value) => updateRewardDraft("tier2", value)}
                 onAdd={(value) => updateRewards("tier2", [...data.rewards.tier2, value])}
                 onRemove={(index) =>
                   updateRewards(
@@ -1055,6 +1076,8 @@ const App = () => {
                     : "Tier 3 rewards (locked)"
                 }
                 items={data.rewards.tier3}
+                value={rewardDrafts.tier3}
+                onValueChange={(value) => updateRewardDraft("tier3", value)}
                 onAdd={(value) => updateRewards("tier3", [...data.rewards.tier3, value])}
                 onRemove={(index) =>
                   updateRewards(
