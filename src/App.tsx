@@ -40,6 +40,7 @@ type AppData = {
     monthlyTarget: number;
     buckets: string[];
     timeZone: string;
+    tokenSource: "blocks" | "manual";
   };
   rewards: {
     tier1: string[];
@@ -49,6 +50,7 @@ type AppData = {
   };
   blocks: Block[];
   claims: Claim[];
+  manualTokens: number;
   timerState: TimerState;
   pendingBlock: PendingBlock | null;
 };
@@ -72,6 +74,7 @@ const defaultData: AppData = {
     monthlyTarget: 40,
     buckets: DEFAULT_BUCKETS,
     timeZone: "Europe/Warsaw",
+    tokenSource: "blocks",
   },
   rewards: {
     tier1: ["Coffee walk", "20 min social scroll", "Quick snack"],
@@ -81,6 +84,7 @@ const defaultData: AppData = {
   },
   blocks: [],
   claims: [],
+  manualTokens: 0,
   timerState: {
     isRunning: false,
     isPaused: false,
@@ -389,7 +393,11 @@ const App = () => {
   );
 
   const tier1Claims = claims.filter((claim) => claim.tier === 1);
-  const tier1Tokens = Math.max(0, blocks.length - tier1Claims.length);
+  const tier1Tokens = Math.max(
+    0,
+    (data.settings.tokenSource === "blocks" ? blocks.length : data.manualTokens) -
+      tier1Claims.length
+  );
 
   const weeklyQuotaReached = weekBlocks.length >= data.settings.weeklyQuota;
   const monthlyTargetReached =
@@ -607,6 +615,17 @@ const App = () => {
     }));
   };
 
+  const handleManualTokenAdd = () => {
+    if (data.settings.tokenSource !== "manual") {
+      return;
+    }
+    setData((prev) => ({
+      ...prev,
+      manualTokens: prev.manualTokens + 1,
+    }));
+    setToast("Tier 1 token added.");
+  };
+
   const updateAntiRewards = (value: string[]) => {
     setData((prev) => ({
       ...prev,
@@ -657,6 +676,7 @@ const App = () => {
       claims: prev.claims.filter(
         (claim) => toMonthKey(new Date(claim.claimedAt), timeZone) !== monthKey
       ),
+      manualTokens: 0,
       pendingBlock: null,
     }));
   };
@@ -1091,6 +1111,34 @@ const App = () => {
             </div>
             <div className="grid gap-6">
               <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink-900">
+                  Tier 1 token controls
+                </h3>
+                <p className="text-sm text-ink-500">
+                  Source:{" "}
+                  {data.settings.tokenSource === "blocks"
+                    ? "Earned per completed block"
+                    : "Manual button"}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-ink-700">
+                  <span className="rounded-full border border-ink-100 px-3 py-1">
+                    Tokens available: {tier1Tokens}
+                  </span>
+                  <span className="rounded-full border border-ink-100 px-3 py-1">
+                    Claims: {tier1Claims.length}
+                  </span>
+                </div>
+                {data.settings.tokenSource === "manual" && (
+                  <button
+                    type="button"
+                    onClick={handleManualTokenAdd}
+                    className="mt-4 rounded-xl bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-700"
+                  >
+                    Add Tier 1 token
+                  </button>
+                )}
+              </div>
+              <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-sm">
                 <h3 className="text-lg font-semibold text-ink-900">Anti reward list</h3>
                 <p className="text-sm text-ink-500">
                   Distractions only allowed if you have Tier 1 tokens.
@@ -1230,6 +1278,25 @@ const App = () => {
                     }
                     className="rounded-xl border border-ink-100 px-3 py-2 focus:border-ink-300 focus:outline-none"
                   />
+                </label>
+                <label className="flex flex-col gap-2">
+                  Tier 1 token source
+                  <select
+                    value={data.settings.tokenSource}
+                    onChange={(event) =>
+                      setData((prev) => ({
+                        ...prev,
+                        settings: {
+                          ...prev.settings,
+                          tokenSource: event.target.value as "blocks" | "manual",
+                        },
+                      }))
+                    }
+                    className="rounded-xl border border-ink-100 px-3 py-2 focus:border-ink-300 focus:outline-none"
+                  >
+                    <option value="blocks">Earn per completed block</option>
+                    <option value="manual">Manual button</option>
+                  </select>
                 </label>
                 <div>
                   <p className="font-semibold text-ink-900">Buckets</p>
