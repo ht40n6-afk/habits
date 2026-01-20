@@ -357,6 +357,9 @@ const App = () => {
     tier2: "",
     tier3: "",
   });
+  const [quickClaimReward, setQuickClaimReward] = useState(
+    data.rewards.tier1[0] ?? ""
+  );
   const completionLock = useRef(false);
 
   const timeZone = data.settings.timeZone;
@@ -447,6 +450,18 @@ const App = () => {
       setPendingBucket(data.settings.buckets[0] ?? "");
     }
   }, [data.pendingBlock, data.settings.buckets]);
+
+  useEffect(() => {
+    setQuickClaimReward((current) => {
+      if (!current && data.rewards.tier1[0]) {
+        return data.rewards.tier1[0];
+      }
+      if (current && !data.rewards.tier1.includes(current)) {
+        return data.rewards.tier1[0] ?? "";
+      }
+      return current;
+    });
+  }, [data.rewards.tier1]);
 
   const handleTimerPreset = (minutes: number, label: string) => {
     if (data.timerState.isRunning) {
@@ -1127,6 +1142,37 @@ const App = () => {
                   <span className="rounded-full border border-ink-100 px-3 py-1">
                     Claims: {tier1Claims.length}
                   </span>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <select
+                    value={quickClaimReward}
+                    onChange={(event) => setQuickClaimReward(event.target.value)}
+                    className="min-w-[180px] rounded-xl border border-ink-100 px-3 py-2 text-sm focus:border-ink-300 focus:outline-none"
+                    disabled={data.rewards.tier1.length === 0}
+                  >
+                    {data.rewards.tier1.length === 0 && (
+                      <option value="">No Tier 1 rewards</option>
+                    )}
+                    {data.rewards.tier1.map((reward) => (
+                      <option key={reward} value={reward}>
+                        {reward}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setClaimDraft({ tier: 1, rewardText: quickClaimReward })
+                    }
+                    disabled={!quickClaimReward || tier1Tokens <= 0}
+                    className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                      !quickClaimReward || tier1Tokens <= 0
+                        ? "cursor-not-allowed bg-ink-100 text-ink-400"
+                        : "bg-ink-900 text-white hover:bg-ink-700"
+                    }`}
+                  >
+                    Claim
+                  </button>
                 </div>
                 {data.settings.tokenSource === "manual" && (
                   <button
