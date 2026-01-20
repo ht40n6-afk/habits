@@ -641,6 +641,32 @@ const App = () => {
     setToast("Tier 1 token added.");
   };
 
+  const handleQuickClaim = () => {
+    if (!quickClaimReward.trim()) {
+      setToast("Choose or type a Tier 1 reward first.");
+      return;
+    }
+    if (tier1Tokens <= 0) {
+      setToast("No Tier 1 tokens available.");
+      return;
+    }
+    setClaimDraft({ tier: 1, rewardText: quickClaimReward });
+  };
+
+  const handleAddQuickClaimReward = () => {
+    const trimmed = quickClaimReward.trim();
+    if (!trimmed) {
+      setToast("Type a reward to add.");
+      return;
+    }
+    if (data.rewards.tier1.includes(trimmed)) {
+      setToast("Reward already exists.");
+      return;
+    }
+    updateRewards("tier1", [...data.rewards.tier1, trimmed]);
+    setToast("Tier 1 reward added.");
+  };
+
   const updateAntiRewards = (value: string[]) => {
     setData((prev) => ({
       ...prev,
@@ -1144,32 +1170,31 @@ const App = () => {
                   </span>
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <select
-                    value={quickClaimReward}
-                    onChange={(event) => setQuickClaimReward(event.target.value)}
-                    className="min-w-[180px] rounded-xl border border-ink-100 px-3 py-2 text-sm focus:border-ink-300 focus:outline-none"
-                    disabled={data.rewards.tier1.length === 0}
-                  >
-                    {data.rewards.tier1.length === 0 && (
-                      <option value="">No Tier 1 rewards</option>
-                    )}
-                    {data.rewards.tier1.map((reward) => (
-                      <option key={reward} value={reward}>
-                        {reward}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex min-w-[220px] flex-1 items-center gap-2">
+                    <input
+                      list="tier1-rewards"
+                      value={quickClaimReward}
+                      onChange={(event) => setQuickClaimReward(event.target.value)}
+                      placeholder="Choose or type a Tier 1 reward"
+                      className="w-full rounded-xl border border-ink-100 px-3 py-2 text-sm focus:border-ink-300 focus:outline-none"
+                    />
+                    <datalist id="tier1-rewards">
+                      {data.rewards.tier1.map((reward) => (
+                        <option key={reward} value={reward} />
+                      ))}
+                    </datalist>
+                    <button
+                      type="button"
+                      onClick={handleAddQuickClaimReward}
+                      className="rounded-xl border border-ink-200 px-3 py-2 text-xs font-semibold text-ink-700 hover:border-ink-400"
+                    >
+                      Add
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    onClick={() =>
-                      setClaimDraft({ tier: 1, rewardText: quickClaimReward })
-                    }
-                    disabled={!quickClaimReward || tier1Tokens <= 0}
-                    className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                      !quickClaimReward || tier1Tokens <= 0
-                        ? "cursor-not-allowed bg-ink-100 text-ink-400"
-                        : "bg-ink-900 text-white hover:bg-ink-700"
-                    }`}
+                    onClick={handleQuickClaim}
+                    className="rounded-xl bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-700"
                   >
                     Claim
                   </button>
